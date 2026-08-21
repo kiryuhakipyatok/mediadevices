@@ -190,6 +190,7 @@ int freeCameraList(cameraList* list, const char** errstr)
 // selectCamera stores pointer to the selected device IMoniker* according to the configs in camera*.
 int selectCamera(camera* cam, IMoniker** monikerSelected, const char** errstr)
 {
+  *monikerSelected = nullptr;
   ICreateDevEnum* sysDevEnum = nullptr;
   IEnumMoniker* enumMon = nullptr;
 
@@ -208,39 +209,34 @@ int selectCamera(camera* cam, IMoniker** monikerSelected, const char** errstr)
     goto fail;
   }
 
-  safeRelease(&sysDevEnum);
-
   if (enumMon == nullptr)
   {
     *errstr = errEnumDevice;
-    return 0;
+    goto fail;
   }
 
   {
-    IMoniker* moniker;
+    IMoniker* moniker = nullptr;
     while (enumMon->Next(1, &moniker, nullptr) == S_OK)
     {
       char* name = getCameraName(moniker);
-      if (strcmp(cam->name, name) != 0)
+      if (name != nullptr && strcmp(cam->name, name) == 0)
       {
         free(name);
-        safeRelease(&moniker);
-        continue;
+        *monikerSelected = moniker;
+        safeRelease(&sysDevEnum);
+        safeRelease(&enumMon);
+        return 1;
       }
-      free(name);
-      *monikerSelected = moniker;
-      safeRelease(&enumMon);
-      return 1;
+      if (name) free(name);
+      safeRelease(&moniker);
     }
   }
-
-  safeRelease(&enumMon);
-  return 0;
 
 fail:
   safeRelease(&sysDevEnum);
   safeRelease(&enumMon);
-  return 1;
+  return 0;
 }
 
 int listResolution(camera* cam, const char** errstr)
@@ -255,7 +251,7 @@ int listResolution(camera* cam, const char** errstr)
 
   if (!selectCamera(cam, &moniker, errstr))
   {
-    goto fail;
+    return 1;
   }
 
   if (FAILED(moniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&captureFilter)))
