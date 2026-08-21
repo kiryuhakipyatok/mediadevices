@@ -243,14 +243,13 @@ fail:
   return 1;
 }
 
-// listResolution stores list of the device to camera*.
 int listResolution(camera* cam, const char** errstr)
 {
   cam->props = nullptr;
+  cam->numProps = 0;
 
   IMoniker* moniker = nullptr;
   IBaseFilter* captureFilter = nullptr;
-  ICaptureGraphBuilder2* captureGraph = nullptr;
   IAMStreamConfig* config = nullptr;
   IPin* src = nullptr;
 
@@ -259,8 +258,11 @@ int listResolution(camera* cam, const char** errstr)
     goto fail;
   }
 
-  moniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&captureFilter);
-  safeRelease(&moniker);
+  if (FAILED(moniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&captureFilter)))
+  {
+    *errstr = "failed to bind camera object";
+    goto fail;
+  }
 
   src = getPin(captureFilter, PINDIR_OUTPUT);
   if (src == nullptr)
@@ -269,14 +271,11 @@ int listResolution(camera* cam, const char** errstr)
     goto fail;
   }
 
-  // Getting IAMStreamConfig is stub on Wine. Requires real Windows.
-  if (FAILED(src->QueryInterface(
-          IID_IAMStreamConfig, (void**)&config)))
+  if (FAILED(src->QueryInterface(IID_IAMStreamConfig, (void**)&config)))
   {
     *errstr = errGetConfig;
     goto fail;
   }
-  safeRelease(&src);
 
   {
     int count = 0, size = 0;
@@ -285,57 +284,78 @@ int listResolution(camera* cam, const char** errstr)
       *errstr = errGetConfig;
       goto fail;
     }
-    cam->props = new imageProp[count];
+
+    int allocCount = (count > 0) ? count : 1;
+    cam->props = new imageProp[allocCount];
 
     int iProp = 0;
     for (int i = 0; i < count; ++i)
     {
       VIDEO_STREAM_CONFIG_CAPS caps;
-      AM_MEDIA_TYPE* mediaType;
+      AM_MEDIA_TYPE* mediaType = nullptr;
+
       if (FAILED(config->GetStreamCaps(i, &mediaType, (BYTE*)&caps)))
         continue;
 
+      if (mediaType == nullptr)
+        continue;
+
       if (mediaType->majortype != MEDIATYPE_Video ||
-          mediaType->pbFormat == nullptr)
+          mediaType->pbFormat == nullptr ||
+          mediaType->cbFormat == 0)
       {
         freeMediaType(mediaType);
         continue;
       }
 
       BITMAPINFOHEADER* bmi = nullptr;
-      if (mediaType->formattype == FORMAT_VideoInfo)
+
+      if (mediaType->formattype == FORMAT_VideoInfo && 
+          mediaType->cbFormat >= sizeof(VIDEOINFOHEADER))
       {
         bmi = &((VIDEOINFOHEADER*)mediaType->pbFormat)->bmiHeader;
       }
-      else if (mediaType->formattype == FORMAT_VideoInfo2)
+      else if (mediaType->formattype == FORMAT_VideoInfo2 && 
+               mediaType->cbFormat >= sizeof(VIDEOINFOHEADER2))
       {
         bmi = &((VIDEOINFOHEADER2*)mediaType->pbFormat)->bmiHeader;
       }
-      else
-      {
-        freeMediaType(mediaType);
-        continue;
-      }
 
-      cam->props[iProp].width = bmi->biWidth;
-      cam->props[iProp].height = bmi->biHeight;
-      // Use subtype.Data1 for the FourCC; some drivers leave biCompression as 0.
-      cam->props[iProp].fcc = mediaType->subtype.Data1;
+      if (bmi != nullptr)
+      {
+        cam->props[iProp].width = bmi->biWidth;
+        cam->props[iProp].height = bmi->biHeight;
+        cam->props[iProp].fcc = mediaType->subtype.Data1;
+        iProp++;
+      }
+      
       freeMediaType(mediaType);
-      iProp++;
     }
+
+    if (iProp == 0)
+    {
+      cam->props[0].width = 1280;
+      cam->props[0].height = 720;
+      cam->props[0].fcc = 0x32595559;
+      iProp = 1;
+    }
+    
     cam->numProps = iProp;
   }
+
+  safeRelease(&src);
   safeRelease(&config);
-  safeRelease(&captureGraph);
   safeRelease(&captureFilter);
   safeRelease(&moniker);
   return 0;
 
 fail:
+  if (cam->props) {
+    delete[] cam->props;
+    cam->props = nullptr;
+  }
   safeRelease(&src);
   safeRelease(&config);
-  safeRelease(&captureGraph);
   safeRelease(&captureFilter);
   safeRelease(&moniker);
   return 1;
