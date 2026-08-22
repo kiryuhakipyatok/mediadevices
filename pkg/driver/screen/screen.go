@@ -8,7 +8,6 @@ import (
 	"image"
 	"io"
 	"runtime"
-	"time"
 
 	dgxi "github.com/ghp3000/screenshot"
 	"github.com/kbinani/screenshot"
@@ -85,7 +84,6 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 
 			img, err = shot.Capture()
 			if err != nil && err.Error() == "no image yet" {
-				time.Sleep(10 * time.Millisecond)
 				continue
 			}
 
