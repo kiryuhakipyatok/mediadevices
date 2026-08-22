@@ -8,6 +8,7 @@ import (
 	"image"
 	"io"
 	"runtime"
+	"time"
 
 	dgxi "github.com/ghp3000/screenshot"
 	"github.com/kbinani/screenshot"
@@ -75,15 +76,27 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	s.shot = shot
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		runtime.LockOSThread()
-		select {
-		case <-s.doneCh:
-			return nil, nil, io.EOF
-		default:
+		for {
+			select {
+			case <-s.doneCh:
+				return nil, nil, io.EOF
+			default:
+			}
+
+			img, err = shot.Capture()
+			if err != nil && err.Error() == "no image yet" {
+				time.Sleep(10 * time.Millisecond)
+				continue
+			}
+
+			if err != nil {
+				return nil, nil, err
+			}
+
+			release = func() {}
+			return
 		}
 
-		img, err = shot.Capture()
-		release = func() {}
-		return
 	})
 	return r, nil
 }
