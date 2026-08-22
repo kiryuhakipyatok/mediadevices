@@ -379,9 +379,14 @@ int openCamera(camera* cam, const char** errstr)
 
   if (!selectCamera(cam, &moniker, errstr))
   {
+    return 1;
+  }
+
+  if (FAILED(moniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&captureFilter)))
+  {
+    *errstr = "failed to bind camera object";
     goto fail;
   }
-  moniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&captureFilter);
   safeRelease(&moniker);
 
   if (FAILED(CoCreateInstance(

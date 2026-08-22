@@ -62,7 +62,7 @@ char* getCameraName(IMoniker* monier);
 template <class T>
 void safeRelease(T** p)
 {
-  if (*p)
+  if (p && *p)
   {
     (*p)->Release();
     *p = nullptr;
