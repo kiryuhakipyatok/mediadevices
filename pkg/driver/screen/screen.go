@@ -20,6 +20,7 @@ import (
 type screen struct {
 	displayIndex int
 	doneCh       chan struct{}
+	shot         dgxi.ScreenShot
 }
 
 func init() {
@@ -58,12 +59,20 @@ func (s *screen) Open() error {
 
 func (s *screen) Close() error {
 	close(s.doneCh)
+	if s.shot != nil {
+		s.shot.Release()
+		s.shot = nil
+	}
 	return nil
 }
 
 func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	shot := dgxi.NewScreenShot(0)
+	if err := shot.Init(s.displayIndex); err != nil {
+		return nil, err
+	}
 	shot.DrawCursor(1)
+	s.shot = shot
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		runtime.LockOSThread()
 		select {
