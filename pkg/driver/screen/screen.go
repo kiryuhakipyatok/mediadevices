@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 package screen
@@ -6,7 +7,9 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"runtime"
 
+	dgxi "github.com/ghp3000/screenshot"
 	"github.com/kbinani/screenshot"
 	"github.com/pion/mediadevices/pkg/driver"
 	"github.com/pion/mediadevices/pkg/frame"
@@ -59,14 +62,17 @@ func (s *screen) Close() error {
 }
 
 func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
+	shot := dgxi.NewScreenShot(0)
+	shot.DrawCursor(1)
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
+		runtime.LockOSThread()
 		select {
 		case <-s.doneCh:
 			return nil, nil, io.EOF
 		default:
 		}
 
-		img, err = screenshot.CaptureDisplay(s.displayIndex)
+		img, err = shot.Capture()
 		release = func() {}
 		return
 	})

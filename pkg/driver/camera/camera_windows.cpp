@@ -387,7 +387,6 @@ int openCamera(camera* cam, const char** errstr)
     *errstr = "failed to bind camera object";
     goto fail;
   }
-  safeRelease(&moniker);
 
   if (FAILED(CoCreateInstance(
           CLSID_FilterGraph, nullptr, CLSCTX_INPROC,
@@ -550,6 +549,7 @@ int openCamera(camera* cam, const char** errstr)
     mediaControl->Run();
   }
 
+  safeRelease(&moniker);
   return 0;
 
 fail:
