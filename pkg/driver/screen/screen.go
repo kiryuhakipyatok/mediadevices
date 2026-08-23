@@ -24,6 +24,7 @@ type screen struct {
 	doneCh       chan struct{}
 	shot         dgxi.ScreenShot
 	mu           sync.Mutex
+	imgBuffPool  sync.Pool
 }
 
 func init() {
@@ -76,10 +77,18 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	if err := shot.Init(s.displayIndex); err != nil {
 		return nil, err
 	}
+	bounds := shot.GetBounds()
 	shot.DrawCursor(1)
 	s.mu.Lock()
 	s.shot = shot
 	s.mu.Unlock()
+
+	s.imgBuffPool = sync.Pool{
+		New: func() any {
+			return image.NewRGBA(bounds)
+		},
+	}
+
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		runtime.LockOSThread()
 		for {
@@ -94,17 +103,23 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 				s.mu.Unlock()
 				return nil, nil, io.EOF
 			}
-
-			img, err = s.shot.Capture()
+			s.mu.Unlock()
+			imgBuf := s.imgBuffPool.Get().(*image.RGBA)
+			s.mu.Lock()
+			err = s.shot.Capture(imgBuf)
 			s.mu.Unlock()
 			if err != nil {
 				if err.Error() == "no image yet" {
 					time.Sleep(10 * time.Millisecond)
 					continue
 				}
+				s.imgBuffPool.Put(imgBuf)
 				return nil, nil, err
 			}
-			release = func() {}
+
+			release = func() {
+				s.imgBuffPool.Put(imgBuf)
+			}
 			return
 		}
 
