@@ -80,7 +80,9 @@ func (s *screen) VideoRecord(p prop.Media) (video.Reader, error) {
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		<-s.tick.C
-		return reader.Read().ToRGBA(&dst), func() {}, nil
+		return reader.Read().ToRGBA(&dst), func() {
+			fmt.Println("linux release")
+		}, nil
 	})
 	return r, nil
 }
