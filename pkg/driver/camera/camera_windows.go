@@ -74,6 +74,38 @@ func Initialize() {
 	C.freeCameraList(&list, &errStr)
 }
 
+func GetCameraNames() map[string]string {
+	C.CoInitializeEx(nil, C.COINIT_MULTITHREADED)
+
+	var list C.cameraList
+	var errStr *C.char
+
+	if C.listCamera(&list, &errStr) != 0 {
+		fmt.Printf("Failed to list Camera: %s\n", C.GoString(errStr))
+		return
+	}
+
+	cameraNames := make(map[string]string)
+	var name string
+	for i := 0; i < int(list.num); i++ {
+		cName := C.getName(&list, C.int(i))
+		if cName == nil {
+			continue
+		}
+		label := C.GoString(cName)
+		
+		if fn := C.getFriendlyName(&list, C.int(i)); fn != nil {
+			name = C.GoString(fn)
+		}
+
+		cameraNames[label] = name
+	}
+
+	C.freeCameraList(&list, &errStr)
+
+	return cameraNames
+}
+
 // SetupObserver is a stub implementation for Windows.
 func SetupObserver() error {
 	return availability.ErrUnimplemented

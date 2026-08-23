@@ -160,6 +160,29 @@ func discover(discovered map[string]struct{}, pattern string) {
 	}
 }
 
+func GetCameraNames() map[string]string {
+	cameraNames := make(map[string]string)
+
+	fetchPaths(cameraNames, "/dev/v4l/by-id/*")
+	fetchPaths(cameraNames, "/dev/v4l/by-path/*")
+	fetchPaths(cameraNames, "/dev/video*")
+
+	return cameraNames
+}
+
+func fetchPaths(cameraNames map[string]string, pattern string) {
+	devices, err := filepath.Glob(pattern)
+	if err != nil {
+		// No v4l device.
+		return
+	}
+	var label string
+	for _, device := range devices {
+		label = filepath.Base(device)
+		cameraNames[label] = device
+	}
+}
+
 func NewCamera(path string) *Camera {
 	formats := map[webcam.PixelFormat]frame.Format{
 		webcam.PixelFormat(C.V4L2_PIX_FMT_YUV420): frame.FormatI420,

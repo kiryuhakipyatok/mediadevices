@@ -220,3 +220,19 @@ func EnumerateDevices() []MediaDeviceInfo {
 	}
 	return info
 }
+
+// func EnumerateCameras() []MediaDeviceInfo {
+// 	drivers := driver.GetManager().Query(
+// 		driver.FilterFn(func(d driver.Driver) bool { return d.Info().DeviceType == driver.Camera }))
+// 	info := make([]MediaDeviceInfo, 0, len(drivers))
+// 	for _, d := range drivers {
+// 		driverInfo := d.Info()
+// 		info = append(info, MediaDeviceInfo{
+// 			DeviceID:   d.ID(),
+// 			Kind:       VideoInput,
+// 			Label:      driverInfo.Label,
+// 			DeviceType: driverInfo.DeviceType,
+// 		})
+// 	}
+// 	return info
+// }
