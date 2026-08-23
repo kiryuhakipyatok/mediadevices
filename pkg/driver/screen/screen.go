@@ -83,12 +83,9 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	s.mu.Lock()
 	s.shot = shot
 	s.mu.Unlock()
-	var i atomic.Int32
 	var j atomic.Int32
 	s.imgBuffPool = sync.Pool{
 		New: func() any {
-			i.Add(1)
-			fmt.Println("ALLOCATING NEW FRAME BUFFER", i.Load())
 			return image.NewRGBA(bounds)
 		},
 	}
