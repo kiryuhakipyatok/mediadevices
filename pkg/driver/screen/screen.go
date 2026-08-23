@@ -116,7 +116,7 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 				s.imgBuffPool.Put(imgBuf)
 				return nil, nil, err
 			}
-
+			img = imgBuf
 			release = func() {
 				s.imgBuffPool.Put(imgBuf)
 			}
