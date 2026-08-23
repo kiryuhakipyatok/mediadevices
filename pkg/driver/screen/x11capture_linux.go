@@ -226,8 +226,8 @@ func (s *shmImage) ToRGBA(dst *image.RGBA) *image.RGBA {
 	}
 }
 
-func newShmImage(dp *C.Display, screen int) (*shmImage, error) {
-	cScreen := C.int(screen)
+func newShmImage(dp *C.Display, Screen int) (*shmImage, error) {
+	cScreen := C.int(Screen)
 	w := int(C.XDisplayWidth(dp, cScreen))
 	h := int(C.XDisplayHeight(dp, cScreen))
 	v := C.XDefaultVisual(dp, cScreen)
@@ -279,7 +279,7 @@ type reader struct {
 	img *shmImage
 }
 
-func newReader(screen int) (*reader, error) {
+func newReader(Screen int) (*reader, error) {
 	dp := C.XOpenDisplay(nil)
 	if dp == nil {
 		return nil, errors.New("failed to open display")
@@ -288,7 +288,7 @@ func newReader(screen int) (*reader, error) {
 		return nil, errors.New("no XShm support")
 	}
 
-	img, err := newShmImage(dp, screen)
+	img, err := newShmImage(dp, Screen)
 	if err != nil {
 		C.XCloseDisplay(dp)
 		return nil, err

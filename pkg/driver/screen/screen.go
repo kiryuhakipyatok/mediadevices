@@ -20,7 +20,7 @@ import (
 	"github.com/pion/mediadevices/pkg/prop"
 )
 
-type screen struct {
+type Screen struct {
 	displayIndex int
 	doneCh       chan struct{}
 	shot         dgxi.ScreenShot
@@ -50,19 +50,19 @@ func Initialize() {
 	}
 }
 
-func NewScreen(displayIndex int) *screen {
-	s := screen{
+func NewScreen(displayIndex int) *Screen {
+	s := Screen{
 		displayIndex: displayIndex,
 	}
 	return &s
 }
 
-func (s *screen) Open() error {
+func (s *Screen) Open() error {
 	s.doneCh = make(chan struct{})
 	return nil
 }
 
-func (s *screen) Close() error {
+func (s *Screen) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	close(s.doneCh)
@@ -73,7 +73,7 @@ func (s *screen) Close() error {
 	return nil
 }
 
-func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
+func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	shot := dgxi.NewScreenShot(0)
 	if err := shot.Init(s.displayIndex); err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	return r, nil
 }
 
-func (s *screen) Properties() []prop.Media {
+func (s *Screen) Properties() []prop.Media {
 	resolution := screenshot.GetDisplayBounds(s.displayIndex)
 	supportedProp := prop.Media{
 		Video: prop.Video{

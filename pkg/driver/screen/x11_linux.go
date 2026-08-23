@@ -11,7 +11,7 @@ import (
 	"github.com/pion/mediadevices/pkg/prop"
 )
 
-type screen struct {
+type Screen struct {
 	num    int
 	reader *reader
 	tick   *time.Ticker
@@ -45,14 +45,14 @@ func Initialize() {
 	}
 }
 
-func NewScreen(screenNum int) *screen {
-	s := screen{
+func NewScreen(screenNum int) *Screen {
+	s := Screen{
 		num: screenNum,
 	}
 	return &s
 }
 
-func (s *screen) Open() error {
+func (s *Screen) Open() error {
 	r, err := newReader(s.num)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (s *screen) Open() error {
 	return nil
 }
 
-func (s *screen) Close() error {
+func (s *Screen) Close() error {
 	s.reader.Close()
 	if s.tick != nil {
 		s.tick.Stop()
@@ -69,7 +69,7 @@ func (s *screen) Close() error {
 	return nil
 }
 
-func (s *screen) VideoRecord(p prop.Media) (video.Reader, error) {
+func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	if p.FrameRate == 0 {
 		p.FrameRate = 10
 	}
@@ -80,14 +80,12 @@ func (s *screen) VideoRecord(p prop.Media) (video.Reader, error) {
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		<-s.tick.C
-		return reader.Read().ToRGBA(&dst), func() {
-			fmt.Println("linux release")
-		}, nil
+		return reader.Read().ToRGBA(&dst), func() {}, nil
 	})
 	return r, nil
 }
 
-func (s *screen) Properties() []prop.Media {
+func (s *Screen) Properties() []prop.Media {
 	rect := s.reader.img.Bounds()
 	w := rect.Dx()
 	h := rect.Dy()
