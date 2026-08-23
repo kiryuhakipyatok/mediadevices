@@ -9,7 +9,6 @@ import (
 	"io"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	dgxi "github.com/ghp3000/screenshot"
@@ -83,12 +82,8 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	s.mu.Lock()
 	s.shot = shot
 	s.mu.Unlock()
-	var i atomic.Int32
-	var j atomic.Int32
 	s.imgBuffPool = sync.Pool{
 		New: func() any {
-			i.Add(1)
-			fmt.Println("ALLOCATING NEW FRAME BUFFER", i.Load())
 			return image.NewRGBA(bounds)
 		},
 	}
@@ -113,8 +108,6 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			err = s.shot.Capture(imgBuf)
 			s.mu.Unlock()
 			if err != nil {
-				j.Add(1)
-				fmt.Println("PUTTING FRAME BUFFER", j.Load())
 				s.imgBuffPool.Put(imgBuf)
 				if err.Error() == "no image yet" {
 					time.Sleep(10 * time.Millisecond)
@@ -124,8 +117,6 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			}
 			img = imgBuf
 			release = func() {
-				j.Add(1)
-				fmt.Println("PUTTING FRAME BUFFER", j.Load())
 				s.imgBuffPool.Put(imgBuf)
 			}
 			return
