@@ -52,9 +52,9 @@ func (broadcaster *Broadcaster) NewReader(copyFrame bool) Reader {
 
 	reader := broadcaster.ioBroadcaster.NewReader(copyFn)
 	return ReaderFunc(func() (image.Image, func(), error) {
-		data, _, err := reader.Read()
+		data, release, err := reader.Read()
 		img, _ := data.(image.Image)
-		return img, func() {}, err
+		return img, release, err
 	})
 }
 
@@ -69,8 +69,8 @@ func (broadcaster *Broadcaster) ReplaceSource(source Reader) error {
 func (broadcaster *Broadcaster) Source() Reader {
 	source := broadcaster.ioBroadcaster.Source()
 	return ReaderFunc(func() (image.Image, func(), error) {
-		data, _, err := source.Read()
+		data, release, err := source.Read()
 		img, _ := data.(image.Image)
-		return img, func() {}, err
+		return img, release, err
 	})
 }
