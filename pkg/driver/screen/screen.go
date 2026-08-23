@@ -8,6 +8,8 @@ import (
 	"image"
 	"io"
 	"runtime"
+	"sync"
+	"time"
 
 	dgxi "github.com/ghp3000/screenshot"
 	"github.com/kbinani/screenshot"
@@ -21,6 +23,7 @@ type screen struct {
 	displayIndex int
 	doneCh       chan struct{}
 	shot         dgxi.ScreenShot
+	mu           sync.Mutex
 }
 
 func init() {
@@ -58,6 +61,8 @@ func (s *screen) Open() error {
 }
 
 func (s *screen) Close() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	close(s.doneCh)
 	if s.shot != nil {
 		s.shot.Release()
@@ -72,7 +77,9 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 		return nil, err
 	}
 	shot.DrawCursor(1)
+	s.mu.Lock()
 	s.shot = shot
+	s.mu.Unlock()
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		runtime.LockOSThread()
 		for {
@@ -82,15 +89,21 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			default:
 			}
 
-			img, err = shot.Capture()
-			if err != nil && err.Error() == "no image yet" {
-				continue
+			s.mu.Lock()
+			if s.shot == nil {
+				s.mu.Unlock()
+				return nil, nil, io.EOF
 			}
 
+			img, err = s.shot.Capture()
+			s.mu.Unlock()
 			if err != nil {
+				if err.Error() == "no image yet" {
+					time.Sleep(10 * time.Millisecond)
+					continue
+				}
 				return nil, nil, err
 			}
-
 			release = func() {}
 			return
 		}
