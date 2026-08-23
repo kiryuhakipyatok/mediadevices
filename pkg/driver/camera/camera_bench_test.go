@@ -45,7 +45,7 @@ func BenchmarkRead(b *testing.B) {
 		p := p
 		b.Run(name, func(b *testing.B) {
 			if err := c.Open(); err != nil {
-				b.Skip("You don't have camera.")
+				b.Skip("You don't have Camera.")
 			}
 			defer c.Close()
 

@@ -69,7 +69,7 @@ const bufCount = 2
 
 // Camera implementation using v4l2
 // Reference: https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/videodev.html#videodev
-type camera struct {
+type Camera struct {
 	path            string
 	cam             *webcam.Webcam
 	formats         map[webcam.PixelFormat]frame.Format
@@ -84,9 +84,9 @@ func init() {
 	Initialize()
 }
 
-// Initialize finds and registers camera devices. This is part of an experimental API.
+// Initialize finds and registers Camera devices. This is part of an experimental API.
 func Initialize() {
-	// Clear all registered camera devices to prevent duplicates.
+	// Clear all registered Camera devices to prevent duplicates.
 	// If first initalize call, this will be a noop.
 	manager := driver.GetManager()
 	for _, d := range manager.Query(driver.FilterVideoRecorder()) {
@@ -132,7 +132,7 @@ func discover(discovered map[string]struct{}, pattern string) {
 		}
 
 		discovered[reallink] = struct{}{}
-		cam := newCamera(device)
+		cam := NewCamera(device)
 		priority := driver.PriorityNormal
 		if reallink == prioritizedDevice {
 			priority = driver.PriorityHigh
@@ -160,7 +160,7 @@ func discover(discovered map[string]struct{}, pattern string) {
 	}
 }
 
-func newCamera(path string) *camera {
+func NewCamera(path string) *Camera {
 	formats := map[webcam.PixelFormat]frame.Format{
 		webcam.PixelFormat(C.V4L2_PIX_FMT_YUV420): frame.FormatI420,
 		webcam.PixelFormat(C.V4L2_PIX_FMT_NV21):   frame.FormatNV21,
@@ -176,7 +176,7 @@ func newCamera(path string) *camera {
 		reversedFormats[v] = k
 	}
 
-	c := &camera{
+	c := &Camera{
 		path:            path,
 		formats:         formats,
 		reversedFormats: reversedFormats,
@@ -197,7 +197,7 @@ func getCameraReadTimeout() uint32 {
 	return readTimeoutSec
 }
 
-func (c *camera) Open() error {
+func (c *Camera) Open() error {
 	cam, err := webcam.Open(c.path)
 	if err != nil {
 		return err
@@ -214,13 +214,13 @@ func (c *camera) Open() error {
 	return nil
 }
 
-func (c *camera) Close() error {
+func (c *Camera) Close() error {
 	if c.cam == nil {
 		return nil
 	}
 
 	if c.cancel != nil {
-		// Let the reader knows that the caller has closed the camera
+		// Let the reader knows that the caller has closed the Camera
 		c.cancel()
 		// Wait until the reader unref the buffer
 		c.mutex.Lock()
@@ -228,7 +228,7 @@ func (c *camera) Close() error {
 
 		// Note: StopStreaming frees frame buffers even if they are still used in Go code.
 		//       There is currently no convenient way to do this safely.
-		//       So, consumer of this stream must close camera after unusing all images.
+		//       So, consumer of this stream must close Camera after unusing all images.
 		c.cam.StopStreaming()
 		c.cancel = nil
 	}
@@ -236,7 +236,7 @@ func (c *camera) Close() error {
 	return nil
 }
 
-func (c *camera) VideoRecord(p prop.Media) (video.Reader, error) {
+func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	decoder, err := frame.NewDecoder(p.FrameFormat)
 	if err != nil {
 		return nil, err
@@ -274,7 +274,7 @@ func (c *camera) VideoRecord(p prop.Media) (video.Reader, error) {
 		// Wait until a frame is ready
 		for i := 0; i < maxEmptyFrameCount; i++ {
 			if ctx.Err() != nil {
-				// Return EOF if the camera is already closed.
+				// Return EOF if the Camera is already closed.
 				return nil, func() {}, io.EOF
 			}
 
@@ -328,7 +328,7 @@ func (c *camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	return r, nil
 }
 
-func (c *camera) Properties() []prop.Media {
+func (c *Camera) Properties() []prop.Media {
 	properties := make([]prop.Media, 0)
 	for format := range c.cam.GetSupportedFormats() {
 		for _, frameSize := range c.cam.GetSupportedFrameSizes(format) {
@@ -339,7 +339,7 @@ func (c *camera) Properties() []prop.Media {
 
 			if frameSize.StepWidth == 0 || frameSize.StepHeight == 0 {
 				framerates := c.cam.GetSupportedFramerates(format, uint32(frameSize.MaxWidth), uint32(frameSize.MaxHeight))
-				// If the camera doesn't support framerate, we just add the resolution and format
+				// If the Camera doesn't support framerate, we just add the resolution and format
 				if len(framerates) == 0 {
 					properties = append(properties, prop.Media{
 						Video: prop.Video{
@@ -412,7 +412,7 @@ func (c *camera) Properties() []prop.Media {
 	return properties
 }
 
-func (c *camera) IsAvailable() (bool, error) {
+func (c *Camera) IsAvailable() (bool, error) {
 	var err error
 
 	// close the opened file descriptor as quickly as possible and in all cases, including panics

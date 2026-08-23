@@ -123,7 +123,7 @@ func TestCameraIsAvailableObserverNotRunning(t *testing.T) {
 	}
 }
 
-// TestNewCamera tests camera constructor.
+// TestNewCamera tests Camera constructor.
 func TestNewCamera(t *testing.T) {
 	testDevice := avfoundation.Device{
 		UID:  "test-uid",

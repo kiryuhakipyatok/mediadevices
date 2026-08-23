@@ -20,15 +20,15 @@ import (
 )
 
 var (
-	callbacks   = make(map[uintptr]*camera)
+	callbacks   = make(map[uintptr]*Camera)
 	callbacksMu sync.RWMutex
 )
 
-type camera struct {
+type Camera struct {
 	name string
 	// mu protects the fields under as per the mutex hat convention.
 	mu     sync.Mutex
-	cam    *C.camera
+	cam    *C.Camera
 	closed bool
 	ch     chan []byte
 	done   chan struct{}
@@ -42,15 +42,15 @@ func init() {
 	Initialize()
 }
 
-// Initialize finds and registers camera devices. This is part of an experimental API.
+// Initialize finds and registers Camera devices. This is part of an experimental API.
 func Initialize() {
 	C.CoInitializeEx(nil, C.COINIT_MULTITHREADED)
 
 	var list C.cameraList
 	var errStr *C.char
 	if C.listCamera(&list, &errStr) != 0 {
-		// Failed to list camera
-		fmt.Printf("Failed to list camera: %s\n", C.GoString(errStr))
+		// Failed to list Camera
+		fmt.Printf("Failed to list Camera: %s\n", C.GoString(errStr))
 		return
 	}
 
@@ -67,7 +67,8 @@ func Initialize() {
 		if fn := C.getFriendlyName(&list, C.int(i)); fn != nil {
 			info.Name = C.GoString(fn)
 		}
-		driver.GetManager().Register(&camera{name: label}, info)
+		cam := NewCamera(label)
+		driver.GetManager().Register(cam, info)
 	}
 
 	C.freeCameraList(&list, &errStr)
@@ -88,7 +89,12 @@ func DestroyObserver() error {
 	return availability.ErrUnimplemented
 }
 
-func (c *camera) Open() error {
+func NewCamera(name string) *Camera {
+	label := C.GoString(cName)
+	return &Camera{name: label}
+}
+
+func (c *Camera) Open() error {
 	// COM is per-thread on Windows. Go goroutines can run on any OS thread,
 	// so ensure COM is initialized on the current one before making COM calls.
 	C.CoInitializeEx(nil, C.COINIT_MULTITHREADED)
@@ -97,13 +103,13 @@ func (c *camera) Open() error {
 	defer c.mu.Unlock()
 
 	if c.cam != nil {
-		return fmt.Errorf("camera already open")
+		return fmt.Errorf("Camera already open")
 	}
 
 	c.ch = make(chan []byte)
 	c.done = make(chan struct{})
 	c.closed = false
-	c.cam = &C.camera{
+	c.cam = &C.Camera{
 		name: C.CString(c.name),
 	}
 
@@ -134,7 +140,7 @@ func imageCallback(cam uintptr) {
 	}
 }
 
-func (c *camera) Close() error {
+func (c *Camera) Close() error {
 	c.mu.Lock()
 	if c.closed {
 		c.mu.Unlock()
@@ -171,14 +177,14 @@ func (c *camera) Close() error {
 	return nil
 }
 
-func (c *camera) VideoRecord(p prop.Media) (video.Reader, error) {
+func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	C.CoInitializeEx(nil, C.COINIT_MULTITHREADED)
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if c.cam == nil {
-		return nil, fmt.Errorf("camera not open")
+		return nil, fmt.Errorf("Camera not open")
 	}
 
 	nPix := p.Width * p.Height
@@ -243,7 +249,7 @@ func (c *camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	return r, nil
 }
 
-func (c *camera) Properties() []prop.Media {
+func (c *Camera) Properties() []prop.Media {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.cam == nil {

@@ -15,7 +15,7 @@ import (
 	"github.com/pion/mediadevices/pkg/prop"
 )
 
-type camera struct {
+type Camera struct {
 	device  avfoundation.Device
 	session *avfoundation.Session
 	rcClose func()
@@ -28,7 +28,7 @@ func init() {
 	Initialize()
 }
 
-// Initialize finds and registers camera devices. This is part of an experimental API.
+// Initialize finds and registers Camera devices. This is part of an experimental API.
 func Initialize() {
 	devices, err := avfoundation.Devices(avfoundation.Video)
 	if err != nil {
@@ -111,19 +111,19 @@ func DestroyObserver() error {
 	return avfoundation.DestroyObserver()
 }
 
-func newCamera(device avfoundation.Device) *camera {
-	return &camera{
+func newCamera(device avfoundation.Device) *Camera {
+	return &Camera{
 		device: device,
 	}
 }
 
-func (cam *camera) Open() error {
+func (cam *Camera) Open() error {
 	var err error
 	cam.session, err = avfoundation.NewSession(cam.device)
 	return err
 }
 
-func (cam *camera) Close() error {
+func (cam *Camera) Close() error {
 	if cam.cancel != nil {
 		cam.cancel()
 		cam.cancel = nil
@@ -140,7 +140,7 @@ func (cam *camera) Close() error {
 	return nil
 }
 
-func (cam *camera) VideoRecord(property prop.Media) (video.Reader, error) {
+func (cam *Camera) VideoRecord(property prop.Media) (video.Reader, error) {
 	decoder, err := frame.NewDecoder(property.FrameFormat)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (cam *camera) VideoRecord(property prop.Media) (video.Reader, error) {
 	cam.rcClose = rc.Close
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		if ctx.Err() != nil {
-			// Return EOF if the camera is already closed.
+			// Return EOF if the Camera is already closed.
 			return nil, func() {}, io.EOF
 		}
 
@@ -175,11 +175,11 @@ func (cam *camera) VideoRecord(property prop.Media) (video.Reader, error) {
 	return r, nil
 }
 
-func (cam *camera) Properties() []prop.Media {
+func (cam *Camera) Properties() []prop.Media {
 	return cam.session.Properties()
 }
 
-func (cam *camera) IsAvailable() (bool, error) {
+func (cam *Camera) IsAvailable() (bool, error) {
 	if !avfoundation.IsObserverRunning() {
 		return false, availability.ErrObserverUnavailable
 	}
