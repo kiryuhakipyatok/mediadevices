@@ -35,16 +35,21 @@ func Initialize() {
 	defer dp.Close()
 	numScreen := dp.NumScreen()
 	for i := 0; i < numScreen; i++ {
-		driver.GetManager().Register(
-			&screen{
-				num: i,
-			},
+		s := NewScreen(i)
+		driver.GetManager().Register(s,
 			driver.Info{
 				Label:      deviceID(i),
 				DeviceType: driver.Screen,
 			},
 		)
 	}
+}
+
+func NewScreen(screenNum int) *screen {
+	s := screen{
+		num: screenNum,
+	}
+	return &s
 }
 
 func (s *screen) Open() error {
