@@ -114,7 +114,7 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			s.mu.Unlock()
 			if err != nil {
 				j.Add(1)
-				fmt.Println("ALLOCATING NEW FRAME BUFFER", j.Load())
+				fmt.Println("PUTTING FRAME BUFFER", j.Load())
 				s.imgBuffPool.Put(imgBuf)
 				if err.Error() == "no image yet" {
 					time.Sleep(10 * time.Millisecond)
@@ -125,7 +125,7 @@ func (s *screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			img = imgBuf
 			release = func() {
 				j.Add(1)
-				fmt.Println("ALLOCATING NEW FRAME BUFFER", j.Load())
+				fmt.Println("PUTTING FRAME BUFFER", j.Load())
 				s.imgBuffPool.Put(imgBuf)
 			}
 			return
