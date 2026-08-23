@@ -28,7 +28,7 @@ type Camera struct {
 	name string
 	// mu protects the fields under as per the mutex hat convention.
 	mu     sync.Mutex
-	cam    *C.Camera
+	cam    *C.camera
 	closed bool
 	ch     chan []byte
 	done   chan struct{}
