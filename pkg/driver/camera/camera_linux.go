@@ -6,7 +6,6 @@ import "C"
 import (
 	"context"
 	"errors"
-	"fmt"
 	"image"
 	"io"
 	"math"
@@ -134,7 +133,7 @@ func discover(discovered map[string]struct{}, pattern string) {
 
 		discovered[reallink] = struct{}{}
 		cam := NewCamera(device)
-		fmt.Println(device)
+
 		priority := driver.PriorityNormal
 		if reallink == prioritizedDevice {
 			priority = driver.PriorityHigh
@@ -157,7 +156,6 @@ func discover(discovered map[string]struct{}, pattern string) {
 			Priority:   priority,
 		}
 
-		fmt.Println(driverInfo)
 
 		driver.GetManager().Register(cam, driverInfo)
 		// 	Source: https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/vidioc-querycap.html
@@ -196,9 +194,11 @@ func fetchPaths(cameraNames map[string]string, pattern string) {
 		if _, ok := cameraNames[reallink]; ok {
 			continue
 		}
-		if _, err := webcam.Open(device); err != nil {
+		webcam, err := webcam.Open(device)
+		if err != nil {
 			continue
 		}
+		webcam.Close()
 		label = filepath.Base(device)
 		cameraNames[label] = device
 	}
@@ -244,7 +244,7 @@ func getCameraReadTimeout() uint32 {
 func (c *Camera) Open() error {
 	cam, err := webcam.Open(c.path)
 	if err != nil {
-		return errors.New(err.Error() + c.path)
+		return err
 	}
 
 	// Buffering should be handled in higher level.
@@ -283,24 +283,24 @@ func (c *Camera) Close() error {
 func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	decoder, err := frame.NewDecoder(p.FrameFormat)
 	if err != nil {
-		return nil, errors.New(err.Error() + "NewDecoder")
+		return nil, err
 	}
 
 	pf := c.reversedFormats[p.FrameFormat]
 	_, _, _, err = c.cam.SetImageFormat(pf, uint32(p.Width), uint32(p.Height))
 	if err != nil {
-		return nil, errors.New(err.Error() + "SetImageFormat")
+		return nil, err
 	}
 
 	if p.FrameRate > 0 {
 		err = c.cam.SetFramerate(float32(p.FrameRate))
 		if err != nil {
-			return nil, errors.New(err.Error() + "SetFramerate")
+			return nil, err
 		}
 	}
 
 	if err := c.cam.StartStreaming(); err != nil {
-		return nil, errors.New(err.Error() + "StartStreaming")
+		return nil, err
 	}
 
 	cam := c.cam
