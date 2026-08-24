@@ -273,28 +273,24 @@ func (c *Camera) Close() error {
 func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	decoder, err := frame.NewDecoder(p.FrameFormat)
 	if err != nil {
-		fmt.Println("a")
-		return nil, err
+		return nil, errors.New(err.Error() + "NewDecoder")
 	}
 
 	pf := c.reversedFormats[p.FrameFormat]
 	_, _, _, err = c.cam.SetImageFormat(pf, uint32(p.Width), uint32(p.Height))
 	if err != nil {
-		fmt.Println("b")
-		return nil, err
+		return nil, errors.New(err.Error() + "SetImageFormat")
 	}
 
 	if p.FrameRate > 0 {
 		err = c.cam.SetFramerate(float32(p.FrameRate))
 		if err != nil {
-			fmt.Println("c")
-			return nil, err
+			return nil, errors.New(err.Error() + "SetFramerate")
 		}
 	}
 
 	if err := c.cam.StartStreaming(); err != nil {
-		fmt.Println("d")
-		return nil, err
+		return nil, errors.New(err.Error() + "StartStreaming")
 	}
 
 	cam := c.cam
