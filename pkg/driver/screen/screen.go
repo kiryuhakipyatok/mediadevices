@@ -25,6 +25,7 @@ type Screen struct {
 	shot         dgxi.ScreenShot
 	mu           sync.Mutex
 	imgBuffPool  sync.Pool
+	tick         *time.Ticker
 }
 
 func init() {
@@ -69,6 +70,10 @@ func (s *Screen) Close() error {
 		s.shot.Release()
 		s.shot = nil
 	}
+	if s.tick != nil {
+		s.tick.Stop()
+		s.tick = nil
+	}
 	return nil
 }
 
@@ -83,6 +88,9 @@ func (s *Screen) GetCaptureName() string {
 }
 
 func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
+	if selectedProp.FrameRate == 0 {
+		selectedProp.FrameRate = 10
+	}
 	shot := dgxi.NewScreenShot(0)
 	if err := shot.Init(s.displayIndex); err != nil {
 		return nil, err
@@ -92,6 +100,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	shot.DrawCursor(1)
 	s.mu.Lock()
 	s.shot = shot
+	s.tick = time.NewTicker(time.Duration(float32(time.Second) / selectedProp.FrameRate))
 	s.mu.Unlock()
 	s.imgBuffPool = sync.Pool{
 		New: func() any {
@@ -108,6 +117,8 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			default:
 			}
 
+			<-s.tick.C
+
 			s.mu.Lock()
 			if s.shot == nil {
 				s.mu.Unlock()
@@ -121,7 +132,6 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			if err != nil {
 				s.imgBuffPool.Put(imgBuf)
 				if err.Error() == "no image yet" {
-					time.Sleep(10 * time.Millisecond)
 					continue
 				}
 				return nil, nil, err
