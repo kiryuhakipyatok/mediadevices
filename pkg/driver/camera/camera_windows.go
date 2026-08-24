@@ -141,7 +141,7 @@ func (c *Camera) Open() error {
 	c.ch = make(chan []byte)
 	c.done = make(chan struct{})
 	c.closed = false
-	c.cam = &C.Camera{
+	c.cam = &C.сamera{
 		name: C.CString(c.name),
 	}
 
