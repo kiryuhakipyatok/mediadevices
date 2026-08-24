@@ -167,14 +167,14 @@ func discover(discovered map[string]struct{}, pattern string) {
 	}
 }
 
-func GetCameraNames() map[string]string {
+func GetCameraNames() (map[string]string, error) {
 	cameraNames := make(map[string]string)
 
 	fetchPaths(cameraNames, "/dev/v4l/by-id/*")
 	fetchPaths(cameraNames, "/dev/v4l/by-path/*")
 	fetchPaths(cameraNames, "/dev/video*")
 
-	return cameraNames
+	return cameraNames, nil
 }
 
 func fetchPaths(cameraNames map[string]string, pattern string) {
