@@ -73,12 +73,22 @@ func (s *Screen) Close() error {
 	return nil
 }
 
-func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, string, error) {
+func (s *Screen) GetCaptureName() string {
+	var cn string
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.shot != nil {
+		cn = s.shot.GetCaptureName()
+	}
+	return cn
+}
+
+func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	shot := dgxi.NewScreenShot(0)
 	if err := shot.Init(s.displayIndex); err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	captureName := shot.GetCaptureName()
+	//	captureName := shot.GetCaptureName()
 	bounds := shot.GetBounds()
 	shot.DrawCursor(1)
 	s.mu.Lock()
@@ -130,7 +140,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, string, err
 		}
 
 	})
-	return r, captureName, nil
+	return r, nil
 }
 
 func (s *Screen) Properties() []prop.Media {

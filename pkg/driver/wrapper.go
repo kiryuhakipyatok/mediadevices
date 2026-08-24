@@ -91,9 +91,9 @@ func (w *adapterWrapper) Properties() []prop.Media {
 	return p
 }
 
-func (w *adapterWrapper) VideoRecord(p prop.Media) (r video.Reader, t string, err error) {
+func (w *adapterWrapper) VideoRecord(p prop.Media) (r video.Reader, err error) {
 	err = w.state.Update(StateRunning, func() error {
-		r, t, err = w.VideoRecorder.VideoRecord(p)
+		r, err = w.VideoRecorder.VideoRecord(p)
 		return err
 	})
 	if err != nil {

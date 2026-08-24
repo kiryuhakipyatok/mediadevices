@@ -8,7 +8,7 @@ import (
 )
 
 type VideoRecorder interface {
-	VideoRecord(p prop.Media) (r video.Reader, t string, err error)
+	VideoRecord(p prop.Media) (r video.Reader, err error)
 }
 
 type AudioRecorder interface {

@@ -69,7 +69,11 @@ func (s *Screen) Close() error {
 	return nil
 }
 
-func (s *Screen) VideoRecord(p prop.Media) (video.Reader, string, error) {
+func (s *Screen) GetCaptureName() string {
+	return "X11"
+}
+
+func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	if p.FrameRate == 0 {
 		p.FrameRate = 10
 	}
@@ -82,7 +86,7 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, string, error) {
 		<-s.tick.C
 		return reader.Read().ToRGBA(&dst), func() {}, nil
 	})
-	return r, "X11", nil
+	return r, nil
 }
 
 func (s *Screen) Properties() []prop.Media {
