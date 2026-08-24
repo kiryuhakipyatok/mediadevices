@@ -180,6 +180,15 @@ func fetchPaths(cameraNames map[string]string, pattern string) {
 	}
 	var label string
 	for _, device := range devices {
+		reallink, err := os.Readlink(device)
+		if err != nil {
+			reallink = label
+		} else {
+			reallink = filepath.Base(reallink)
+		}
+		if _, ok := cameraNames[reallink]; ok {
+			continue
+		}
 		label = filepath.Base(device)
 		cameraNames[label] = device
 	}
