@@ -6,12 +6,12 @@ package camera
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"io"
 	"sync"
 	"unsafe"
-	"errors"
 
 	"github.com/pion/mediadevices/pkg/driver"
 	"github.com/pion/mediadevices/pkg/driver/availability"
@@ -82,7 +82,8 @@ func GetCameraNames() (map[string]string, error) {
 	var errStr *C.char
 
 	if C.listCamera(&list, &errStr) != 0 {
-		return nil, errors.New("Failed to list Camera: ", C.GoString(errStr))
+		errStr := fmt.Sprintf("Failed to list Camera: %s", C.GoString(errStr))
+		return nil, errors.New(errStr)
 	}
 
 	cameraNames := make(map[string]string)
@@ -93,7 +94,7 @@ func GetCameraNames() (map[string]string, error) {
 			continue
 		}
 		label := C.GoString(cName)
-		
+
 		if fn := C.getFriendlyName(&list, C.int(i)); fn != nil {
 			name = C.GoString(fn)
 		}
