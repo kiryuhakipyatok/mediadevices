@@ -6,6 +6,7 @@ import "C"
 import (
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"io"
 	"math"
@@ -133,6 +134,7 @@ func discover(discovered map[string]struct{}, pattern string) {
 
 		discovered[reallink] = struct{}{}
 		cam := NewCamera(device)
+		fmt.Println(device)
 		priority := driver.PriorityNormal
 		if reallink == prioritizedDevice {
 			priority = driver.PriorityHigh
