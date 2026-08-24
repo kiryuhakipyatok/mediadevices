@@ -11,6 +11,7 @@ import (
 	"io"
 	"sync"
 	"unsafe"
+	"errors"
 
 	"github.com/pion/mediadevices/pkg/driver"
 	"github.com/pion/mediadevices/pkg/driver/availability"
@@ -120,8 +121,7 @@ func DestroyObserver() error {
 	return availability.ErrUnimplemented
 }
 
-func NewCamera(name string) *Camera {
-	label := C.GoString(cName)
+func NewCamera(label string) *Camera {
 	return &Camera{name: label}
 }
 
