@@ -366,7 +366,7 @@ func newVideoTrackFromReader(source Source, reader video.Reader, selector *Codec
 
 // newVideoTrackFromDriver is an internal video track creation from driver
 func newVideoTrackFromDriver(d driver.Driver, recorder driver.VideoRecorder, constraints MediaTrackConstraints, selector *CodecSelector) (Track, error) {
-	reader, err := recorder.VideoRecord(constraints.selectedMedia)
+	reader, _, err := recorder.VideoRecord(constraints.selectedMedia)
 	if err != nil {
 		return nil, err
 	}
