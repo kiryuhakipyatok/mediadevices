@@ -264,7 +264,7 @@ func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	img := &image.YCbCr{}
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
-		<-c.tick.C
+		//<-c.tick.C
 
 		b, ok := <-c.ch
 		if !ok {

@@ -117,7 +117,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			default:
 			}
 
-			<-s.tick.C
+		//	<-s.tick.C
 
 			s.mu.Lock()
 			if s.shot == nil {
