@@ -211,11 +211,18 @@ func EnumerateDevices() []MediaDeviceInfo {
 			continue
 		}
 		driverInfo := d.Info()
+		var name string
+		if driverInfo.Name == "" {
+			name = "undefined name"
+		} else {
+			name = driverInfo.Name
+		}
 		info = append(info, MediaDeviceInfo{
 			DeviceID:   d.ID(),
 			Kind:       kind,
 			Label:      driverInfo.Label,
 			DeviceType: driverInfo.DeviceType,
+			Name:       name,
 		})
 	}
 	return info

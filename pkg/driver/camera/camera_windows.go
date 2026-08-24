@@ -97,9 +97,9 @@ func GetCameraNames() (map[string]string, error) {
 
 		if fn := C.getFriendlyName(&list, C.int(i)); fn != nil {
 			name = C.GoString(fn)
+			cameraNames[name] = label
 		}
 
-		cameraNames[label] = name
 	}
 
 	C.freeCameraList(&list, &errStr)
