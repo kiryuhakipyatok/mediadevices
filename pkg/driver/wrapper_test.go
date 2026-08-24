@@ -52,7 +52,7 @@ func TestVideoWrapperState(t *testing.T) {
 	}
 
 	vr := d.(VideoRecorder)
-	_, err := vr.VideoRecord(prop.Media{})
+	_, _, err := vr.VideoRecord(prop.Media{})
 	if err == nil {
 		t.Errorf("expected to get an invalid state")
 	}
@@ -62,7 +62,7 @@ func TestVideoWrapperState(t *testing.T) {
 		t.Errorf("expected to successfully open, but got %v", err)
 	}
 
-	_, err = vr.VideoRecord(prop.Media{})
+	_, _, err = vr.VideoRecord(prop.Media{})
 	if err != nil {
 		t.Errorf("expected to successfully start recording, but got %v", err)
 	}
@@ -78,7 +78,7 @@ func TestVideoWrapperWithBrokenRecorderState(t *testing.T) {
 	}
 
 	vr := d.(VideoRecorder)
-	_, err = vr.VideoRecord(prop.Media{})
+	_, _, err = vr.VideoRecord(prop.Media{})
 	if err == nil {
 		t.Errorf("expected to get an error")
 	}
