@@ -234,7 +234,7 @@ func getCameraReadTimeout() uint32 {
 func (c *Camera) Open() error {
 	cam, err := webcam.Open(c.path)
 	if err != nil {
-		return err
+		return errors.New(err.Error() + c.path)
 	}
 
 	// Buffering should be handled in higher level.
