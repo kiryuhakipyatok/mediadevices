@@ -141,11 +141,14 @@ func discover(discovered map[string]struct{}, pattern string) {
 		}
 
 		var name, busInfo string
-		if webcamCam, err := webcam.Open(cam.path); err == nil {
-			defer webcamCam.Close()
-			name, _ = webcamCam.GetName()
-			busInfo, _ = webcamCam.GetBusInfo()
+		webcamCam, err := webcam.Open(cam.path)
+		if err != nil {
+			continue
 		}
+
+		defer webcamCam.Close()
+		name, _ = webcamCam.GetName()
+		busInfo, _ = webcamCam.GetBusInfo()
 
 		driverInfo := driver.Info{
 			Name:       name + LabelSeparator + busInfo,
@@ -191,6 +194,9 @@ func fetchPaths(cameraNames map[string]string, pattern string) {
 			reallink = filepath.Base(reallink)
 		}
 		if _, ok := cameraNames[reallink]; ok {
+			continue
+		}
+		if _, err := webcam.Open(device); err != nil {
 			continue
 		}
 		label = filepath.Base(device)
