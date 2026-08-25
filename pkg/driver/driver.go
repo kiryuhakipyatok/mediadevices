@@ -7,10 +7,14 @@ import (
 	"github.com/pion/mediadevices/pkg/prop"
 )
 
+type VideoDevice interface {
+	VideoRecord(p prop.Media) (r video.Reader, err error)
+	Open() error
+	Close() error
+}
+
 type VideoRecorder interface {
 	VideoRecord(p prop.Media) (r video.Reader, err error)
-	Close() error
-	Open() error
 }
 
 type AudioRecorder interface {
