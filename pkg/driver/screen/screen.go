@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"runtime"
 	"sync"
 	"time"
 
@@ -109,7 +108,6 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	}
 
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
-		runtime.LockOSThread()
 		for {
 			select {
 			case <-s.doneCh:
