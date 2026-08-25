@@ -9,6 +9,8 @@ import (
 
 type VideoRecorder interface {
 	VideoRecord(p prop.Media) (r video.Reader, err error)
+	Close() error
+	Open() error
 }
 
 type AudioRecorder interface {
