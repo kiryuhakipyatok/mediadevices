@@ -95,7 +95,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	if err := shot.Init(s.displayIndex); err != nil {
 		return nil, err
 	}
-	//	captureName := shot.GetCaptureName()
+
 	bounds := shot.GetBounds()
 	shot.DrawCursor(1)
 	s.mu.Lock()
@@ -117,7 +117,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			default:
 			}
 
-		//	<-s.tick.C
+			<-s.tick.C
 
 			s.mu.Lock()
 			if s.shot == nil {

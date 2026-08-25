@@ -167,7 +167,7 @@ func imageCallback(cam uintptr) {
 	}
 	copy(cb.bufGo, unsafe.Slice((*byte)(cb.cbuf), cb.bufLen))
 	callbacksMu.RUnlock()
-
+	<-cb.tick.C
 	select {
 	case cb.ch <- cb.bufGo:
 	case <-cb.done:
