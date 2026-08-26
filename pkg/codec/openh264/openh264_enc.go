@@ -86,7 +86,7 @@ func (e *encoder) Read() ([]byte, func(), error) {
 	if err := errResult(rv); err != nil {
 		return nil, func() {}, fmt.Errorf("failed in encoding: %v", err)
 	}
-
+	
 	encoded := C.GoBytes(unsafe.Pointer(s.data), s.data_len)
 	return encoded, func() {}, nil
 }
