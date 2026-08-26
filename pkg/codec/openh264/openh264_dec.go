@@ -35,7 +35,7 @@ func NewDecoder(r io.Reader, p prop.Media, params DecParams) (codec.VideoDecoder
 	var rv C.int
 	cdecoder := C.dec_new(C.DecoderOptions{
 		target_dq_layer: C.uchar(params.TargetDQLayer),
-		error_con_idc:   C.ERROR_CON_IDC(C.uint(params.VideoBitstreamType)),
+		error_con_idc:   C.ERROR_CON_IDC(C.uint(params.ErrorConcealment)),
 		parse_only:      C.bool(params.ParseOnly),
 		video_bs_type:   C.VIDEO_BITSTREAM_TYPE(C.uint(params.VideoBitstreamType)),
 	}, &rv)
@@ -70,33 +70,37 @@ func (d *decoder) Read() (image.Image, func(), error) {
 		frame    C.DecodedFrame
 	)
 
-	frame = C.dec_decode(d.engine, toCSlice(d.buf), &eresult)
-	if eresult != 0 {
-		return nil, nil, fmt.Errorf("decode error: %d", int(eresult))
-	}
-	if frame.frame_ready != 0 {
-		dst = processFrame(frame)
-		return dst, func() {}, nil
-	}
+	// frame = C.dec_decode(d.engine, toCSlice(d.buf), &eresult)
+	// if eresult != 0 {
+	// 	return nil, nil, fmt.Errorf("decode error: %d", int(eresult))
+	// }
+	// if frame.frame_ready != 0 {
+	// 	dst = processFrame(frame)
+	// 	return dst, func() {}, nil
+	// }
 
 	for {
 		n, err := d.r.Read(d.buf)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				frame = C.dec_flush(d.engine, &efresult)
-				if efresult != 0 {
-					return nil, nil, fmt.Errorf("flush error: %d", int(eresult))
-				}
-				if frame.frame_ready != 0 {
+				for {
+					frame = C.dec_flush(d.engine, &efresult)
+					if efresult != 0 {
+						return nil, nil, fmt.Errorf("flush error: %d", int(efresult))
+					}
+					if frame.frame_ready == 0 {
+						return nil, nil, io.EOF
+					}
 					dst = processFrame(frame)
 					return dst, func() {}, nil
 				}
 			}
+
 			return nil, nil, err
 		}
 
 		frame = C.dec_decode(d.engine, toCSlice(d.buf[:n]), &eresult)
-		if eresult != 0 {
+		if eresult != 0 && efresult != C.int(0x01) {
 			return nil, nil, fmt.Errorf("decode error: %d", int(eresult))
 		}
 		if frame.frame_ready != 0 {
