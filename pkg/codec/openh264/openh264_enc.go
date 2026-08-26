@@ -3,7 +3,7 @@ package openh264
 // #include <string.h>
 // #include <openh264/codec_api.h>
 // #include <errno.h>
-// #include "bridge.hpp"
+// #include "enc_bridge.hpp"
 import "C"
 
 import (
@@ -26,7 +26,7 @@ type encoder struct {
 	closed bool
 }
 
-func newEncoder(r video.Reader, p prop.Media, params Params) (codec.ReadCloser, error) {
+func NewEncoder(r video.Reader, p prop.Media, params EncParams) (codec.ReadCloser, error) {
 	if params.BitRate == 0 {
 		params.BitRate = 100000
 	}

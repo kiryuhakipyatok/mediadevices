@@ -54,8 +54,8 @@ static DecodedFrame copy_frame(Decoder *d, SBufferInfo *info) {
   int y_stride = info->UsrData.sSystemBuffer.iStride[0];
   int c_stride = info->UsrData.sSystemBuffer.iStride[1];
 
-  int y_size = y_stride * height;
-  int c_size = c_stride * (height / 2); // U and V
+  int y_size = width * height;
+  int c_size = (width/2) * (height / 2); // U and V
   int size = y_size + 2 * c_size;
 
   if (d->buff_size < size) {
@@ -68,17 +68,17 @@ static DecodedFrame copy_frame(Decoder *d, SBufferInfo *info) {
   unsigned char *v = d->buff + y_size + c_size;
 
   for (int i = 0; i < height; i++)
-    memcpy(y + i * y_stride, info->pDst[0] + i * y_stride, width);
+    memcpy(y + i * width, info->pDst[0] + i * y_stride, width);
   for (int i = 0; i < height / 2; i++)
-    memcpy(u + i * c_stride, info->pDst[1] + i * c_stride, width / 2);
+    memcpy(u + i * (width/2), info->pDst[1] + i * c_stride, width / 2);
   for (int i = 0; i < height / 2; i++)
-    memcpy(v + i * c_stride, info->pDst[2] + i * c_stride, width / 2);
+    memcpy(v + i * (width/2), info->pDst[2] + i * c_stride, width / 2);
 
   frame.y = y;
   frame.u = u;
   frame.v = v;
-  frame.ystride = y_stride;
-  frame.cstride = c_stride;
+  frame.ystride = width;
+  frame.cstride = width/2;
   frame.width = width;
   frame.height = height;
   frame.frame_ready = 1;

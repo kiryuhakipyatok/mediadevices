@@ -10,7 +10,7 @@ import (
 )
 
 // Params stores libopenh264 specific encoding parameters.
-type Params struct {
+type EncParams struct {
 	codec.BaseParams
 	UsageType           UsageTypeEnum
 	RCMode              RCModeEnum
@@ -54,8 +54,8 @@ const (
 )
 
 // NewParams returns default openh264 codec specific parameters.
-func NewParams() (Params, error) {
-	return Params{
+func NewEncParams() (EncParams, error) {
+	return EncParams{
 		BaseParams: codec.BaseParams{
 			BitRate: 100000,
 		},
@@ -72,11 +72,11 @@ func NewParams() (Params, error) {
 }
 
 // RTPCodec represents the codec metadata
-func (p *Params) RTPCodec() *codec.RTPCodec {
+func (p *EncParams) RTPCodec() *codec.RTPCodec {
 	return codec.NewRTPH264Codec(90000)
 }
 
 // BuildVideoEncoder builds openh264 encoder with given params
-func (p *Params) BuildVideoEncoder(r video.Reader, property prop.Media) (codec.ReadCloser, error) {
-	return newEncoder(r, property, *p)
+func (p *EncParams) BuildVideoEncoder(r video.Reader, property prop.Media) (codec.ReadCloser, error) {
+	return NewEncoder(r, property, *p)
 }

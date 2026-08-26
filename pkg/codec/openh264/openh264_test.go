@@ -28,7 +28,7 @@ func TestShouldImplementKeyFrameControl(t *testing.T) {
 
 func TestEncoder(t *testing.T) {
 	t.Run("SimpleRead", func(t *testing.T) {
-		p, err := NewParams()
+		p, err := NewEncParams()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -47,7 +47,7 @@ func TestEncoder(t *testing.T) {
 		)
 	})
 	t.Run("CloseTwice", func(t *testing.T) {
-		p, err := NewParams()
+		p, err := NewEncParams()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +61,7 @@ func TestEncoder(t *testing.T) {
 		})
 	})
 	t.Run("ReadAfterClose", func(t *testing.T) {
-		p, err := NewParams()
+		p, err := NewEncParams()
 		if err != nil {
 			t.Fatal(err)
 		}
