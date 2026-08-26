@@ -20,7 +20,7 @@ Encoder *enc_new(const EncoderOptions opts, int *eresult) {
     *eresult = rv;
     return NULL;
   }
-
+  
   params.iUsageType = opts.usage_type;
   params.iPicWidth = opts.width;
   params.iPicHeight = opts.height;
@@ -31,6 +31,7 @@ Encoder *enc_new(const EncoderOptions opts, int *eresult) {
   params.bEnableFrameSkip = opts.enable_frame_skip;
   params.uiMaxNalSize = opts.max_nal_size;
   params.uiIntraPeriod = opts.intra_period;
+  
   params.iMultipleThreadIdc = opts.multiple_thread_idc;
   // The base spatial layer 0 is the only one we use.
   params.sSpatialLayers[0].iVideoWidth = params.iPicWidth;
@@ -47,6 +48,9 @@ Encoder *enc_new(const EncoderOptions opts, int *eresult) {
     *eresult = rv;
     return NULL;
   }
+
+  int level = WELS_LOG_ERROR;
+  engine->SetOption(ENCODER_OPTION_TRACE_LEVEL, &level);
 
   Encoder *encoder = (Encoder *)malloc(sizeof(Encoder));
   encoder->engine = engine;

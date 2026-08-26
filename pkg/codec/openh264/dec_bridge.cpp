@@ -25,6 +25,9 @@ Decoder *dec_new(const DecoderOptions opts, int *eresult) {
     return NULL;
   }
 
+  int level = WELS_LOG_ERROR;
+  decoder->SetOption(DECODER_OPTION_TRACE_LEVEL, &level);
+
   Decoder *decoder = (Decoder *)malloc(sizeof(Decoder));
   decoder->engine = engine;
   decoder->params = params;
