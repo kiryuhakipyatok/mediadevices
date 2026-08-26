@@ -51,7 +51,7 @@ func NewDecParams() (DecParams, error) {
 			BitRate: 100000,
 		}, 
 		TargetDQLayer:      TargetDQLayerAll,
-		VideoBitstreamType: TargetDQLayerAll,
+		VideoBitstreamType: VideoBitstreamDefault,
 		ErrorConcealment:   ErrorConFrameCopy,
 	}, nil
 }
