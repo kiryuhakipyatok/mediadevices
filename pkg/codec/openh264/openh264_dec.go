@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"sync"
 	"unsafe"
 
@@ -81,6 +82,7 @@ func (d *decoder) Read() (image.Image, func(), error) {
 
 	for {
 		n, err := d.r.Read(d.buf)
+		log.Printf("first bytes: %x", d.buf[:min(20, n)])
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				for {
