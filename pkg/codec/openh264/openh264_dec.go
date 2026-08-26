@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"log"
 	"sync"
 	"unsafe"
 
@@ -82,7 +81,6 @@ func (d *decoder) Read() (image.Image, func(), error) {
 
 	for {
 		n, err := d.r.Read(d.buf)
-		log.Printf("first bytes: %x", d.buf[:min(20, n)])
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				for {
@@ -103,7 +101,7 @@ func (d *decoder) Read() (image.Image, func(), error) {
 
 		frame = C.dec_decode(d.engine, toCSlice(d.buf[:n]), &eresult)
 		if eresult != 0 && efresult != C.int(0x01) {
-			return nil, nil, fmt.Errorf("decode error: %d", int(eresult))
+			return nil, nil, fmt.Errorf("decode error: %d, %x", int(eresult), d.buf[:min(20, n)])
 		}
 		if frame.frame_ready != 0 {
 			dst = processFrame(frame)
