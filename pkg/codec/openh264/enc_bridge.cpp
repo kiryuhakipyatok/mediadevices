@@ -4,6 +4,12 @@
 #include <string.h>
 #include <sys/time.h>
 
+void enc_trace(void* ctx, int level, const char* msg) {
+    if (level == WELS_LOG_ERROR) {
+        fprintf(stderr, "[openh264-enc] %s", msg);
+    }
+}
+
 Encoder *enc_new(const EncoderOptions opts, int *eresult) {
   int rv;
   ISVCEncoder *engine;
@@ -51,6 +57,8 @@ Encoder *enc_new(const EncoderOptions opts, int *eresult) {
 
   int level = WELS_LOG_ERROR;
   engine->SetOption(ENCODER_OPTION_TRACE_LEVEL, &level);
+  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK, (void*)enc_trace);
+  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK_CONTEXT, NULL);
 
   Encoder *encoder = (Encoder *)malloc(sizeof(Encoder));
   encoder->engine = engine;
