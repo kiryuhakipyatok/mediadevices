@@ -1,6 +1,7 @@
 #include "dec_bridge.hpp"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 void dec_trace(void* ctx, int level, const char* msg) {
     if (level == WELS_LOG_ERROR) {
