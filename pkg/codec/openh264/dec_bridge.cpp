@@ -1,13 +1,13 @@
 #include "dec_bridge.hpp"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+//#include <stdio.h>
 
-void dec_trace(void* ctx, int level, const char* msg) {
-    if (level == WELS_LOG_ERROR) {
-        fprintf(stderr, "[openh264-dec] %s", msg);
-    }
-}
+// void dec_trace(void* ctx, int level, const char* msg) {
+//     if (level == WELS_LOG_ERROR) {
+//         fprintf(stderr, "[openh264-dec] %s", msg);
+//     }
+// }
 
 Decoder *dec_new(const DecoderOptions opts, int *eresult) {
   int rv;
@@ -32,10 +32,10 @@ Decoder *dec_new(const DecoderOptions opts, int *eresult) {
     return NULL;
   }
 
-  int level = WELS_LOG_ERROR;
-  engine->SetOption(DECODER_OPTION_TRACE_LEVEL, &level);
-  engine->SetOption(DECODER_OPTION_TRACE_CALLBACK, (void*)dec_trace);
-  engine->SetOption(DECODER_OPTION_TRACE_CALLBACK_CONTEXT, NULL);
+  // int level = WELS_LOG_ERROR;
+  // engine->SetOption(DECODER_OPTION_TRACE_LEVEL, &level);
+  // engine->SetOption(DECODER_OPTION_TRACE_CALLBACK, (void*)dec_trace);
+  // engine->SetOption(DECODER_OPTION_TRACE_CALLBACK_CONTEXT, NULL);
 
 
   Decoder *decoder = (Decoder *)malloc(sizeof(Decoder));
