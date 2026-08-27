@@ -49,16 +49,16 @@ Encoder *enc_new(const EncoderOptions opts, int *eresult) {
   params.sSpatialLayers[0].sSliceArgument.uiSliceMode = opts.slice_mode;
   params.sSpatialLayers[0].sSliceArgument.uiSliceSizeConstraint = opts.slice_size_constraint;
 
+  int level = WELS_LOG_ERROR;
+  engine->SetOption(ENCODER_OPTION_TRACE_LEVEL, &level);
+  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK, (void*)enc_trace);
+  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK_CONTEXT, NULL);
+
   rv = engine->InitializeExt(&params);
   if (rv != 0) {
     *eresult = rv;
     return NULL;
   }
-
-  int level = WELS_LOG_ERROR;
-  engine->SetOption(ENCODER_OPTION_TRACE_LEVEL, &level);
-  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK, (void*)enc_trace);
-  engine->SetOption(ENCODER_OPTION_TRACE_CALLBACK_CONTEXT, NULL);
 
   Encoder *encoder = (Encoder *)malloc(sizeof(Encoder));
   encoder->engine = engine;
