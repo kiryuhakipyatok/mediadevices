@@ -43,11 +43,6 @@ func NewVP8Params() (ParamsVP8, error) {
 	}, nil
 }
 
-// RTPCodec represents the codec metadata
-func (p *ParamsVP8) RTPCodec() *codec.RTPCodec {
-	return codec.NewRTPVP8Codec(90000)
-}
-
 // BuildVideoEncoder builds VP8 encoder with given params
 func (p *ParamsVP8) BuildVideoEncoder(r video.Reader, property prop.Media) (codec.ReadCloser, error) {
 	return newVP8Encoder(r, property, *p)
@@ -110,11 +105,6 @@ func NewVP9Params() (ParamsVP9, error) {
 			MaxQP:            127,
 		},
 	}, nil
-}
-
-// RTPCodec represents the codec metadata
-func (p *ParamsVP9) RTPCodec() *codec.RTPCodec {
-	return codec.NewRTPVP9Codec(90000)
 }
 
 // BuildVideoEncoder builds VP9 encoder with given params

@@ -2,7 +2,6 @@ package driver
 
 import (
 	"github.com/pion/mediadevices/pkg/driver/availability"
-	"github.com/pion/mediadevices/pkg/io/audio"
 	"github.com/pion/mediadevices/pkg/io/video"
 	"github.com/pion/mediadevices/pkg/prop"
 )
@@ -15,10 +14,6 @@ type VideoDevice interface {
 
 type VideoRecorder interface {
 	VideoRecord(p prop.Media) (r video.Reader, err error)
-}
-
-type AudioRecorder interface {
-	AudioRecord(p prop.Media) (r audio.Reader, err error)
 }
 
 // Priority represents device selection priority level

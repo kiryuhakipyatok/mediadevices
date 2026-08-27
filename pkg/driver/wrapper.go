@@ -3,7 +3,6 @@ package driver
 import (
 	"github.com/google/uuid"
 	"github.com/pion/mediadevices/pkg/driver/availability"
-	"github.com/pion/mediadevices/pkg/io/audio"
 	"github.com/pion/mediadevices/pkg/io/video"
 	"github.com/pion/mediadevices/pkg/prop"
 )
@@ -36,14 +35,6 @@ func wrapAdapter(a Adapter, info Info) Driver {
 			AvailabilityAdapter
 		}{d, d, d}
 		return r
-	case AudioRecorder:
-		// Only expose Driver and AudioRecorder interfaces
-		d.AudioRecorder = v
-		return &struct {
-			Driver
-			AudioRecorder
-			AvailabilityAdapter
-		}{d, d, d}
 	default:
 		panic("adapter has to be either VideoRecorder/AudioRecorder")
 	}
@@ -52,7 +43,6 @@ func wrapAdapter(a Adapter, info Info) Driver {
 type adapterWrapper struct {
 	Adapter
 	VideoRecorder
-	AudioRecorder
 	id          string
 	info        Info
 	state       State
@@ -94,17 +84,6 @@ func (w *adapterWrapper) Properties() []prop.Media {
 func (w *adapterWrapper) VideoRecord(p prop.Media) (r video.Reader, err error) {
 	err = w.state.Update(StateRunning, func() error {
 		r, err = w.VideoRecorder.VideoRecord(p)
-		return err
-	})
-	if err != nil {
-		_ = w.Close()
-	}
-	return
-}
-
-func (w *adapterWrapper) AudioRecord(p prop.Media) (r audio.Reader, err error) {
-	err = w.state.Update(StateRunning, func() error {
-		r, err = w.AudioRecorder.AudioRecord(p)
 		return err
 	})
 	if err != nil {

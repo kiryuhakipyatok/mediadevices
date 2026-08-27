@@ -1,7 +1,6 @@
 package driver
 
 import (
-	"github.com/pion/mediadevices/pkg/io/audio"
 	"github.com/pion/mediadevices/pkg/io/video"
 	"github.com/pion/mediadevices/pkg/prop"
 	"github.com/stretchr/testify/assert"
@@ -58,8 +57,6 @@ type fakeAudioAdapter struct{}
 func (a *fakeAudioAdapter) Open() error              { return nil }
 func (a *fakeAudioAdapter) Close() error             { return nil }
 func (a *fakeAudioAdapter) Properties() []prop.Media { return nil }
-
-func (a *fakeAudioAdapter) AudioRecord(_ prop.Media) (r audio.Reader, err error) { return nil, nil }
 
 type fakeAdapter struct{}
 

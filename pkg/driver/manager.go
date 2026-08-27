@@ -14,14 +14,6 @@ func FilterVideoRecorder() FilterFn {
 	}
 }
 
-// FilterAudioRecorder return a filter function to get a list of registered AudioRecorders
-func FilterAudioRecorder() FilterFn {
-	return func(d Driver) bool {
-		_, ok := d.(AudioRecorder)
-		return ok
-	}
-}
-
 // FilterID return a filter function to get registered drivers which have given ID
 func FilterID(id string) FilterFn {
 	return func(d Driver) bool {

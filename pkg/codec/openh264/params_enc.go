@@ -71,11 +71,6 @@ func NewEncParams() (EncParams, error) {
 	}, nil
 }
 
-// RTPCodec represents the codec metadata
-func (p *EncParams) RTPCodec() *codec.RTPCodec {
-	return codec.NewRTPH264Codec(90000)
-}
-
 // BuildVideoEncoder builds openh264 encoder with given params
 func (p *EncParams) BuildVideoEncoder(r video.Reader, property prop.Media) (codec.ReadCloser, error) {
 	return NewEncoder(r, property, *p)
