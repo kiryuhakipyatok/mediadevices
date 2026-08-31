@@ -9,6 +9,7 @@ import (
 	"github.com/pion/mediadevices/pkg/frame"
 	"github.com/pion/mediadevices/pkg/io/video"
 	"github.com/pion/mediadevices/pkg/prop"
+	"golang.org/x/image/draw"
 )
 
 type Screen struct {
@@ -77,14 +78,25 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	if p.FrameRate == 0 {
 		p.FrameRate = 10
 	}
+	if p.Width == 0 {
+		p.Width = 1920
+	}
+	if p.Height == 0 {
+		p.Height = 1080
+	}
 	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
-
-	var dst image.RGBA
+	var (
+		dst           *image.RGBA
+		downscaledImg = image.NewRGBA(image.Rect(0, 0, p.Width, p.Height))
+	)
 	reader := s.reader
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		<-s.tick.C
-		return reader.Read().ToRGBA(&dst), func() {}, nil
+		dst = reader.Read().ToRGBA(dst)
+		draw.NearestNeighbor.Scale(downscaledImg, downscaledImg.Rect, dst,
+			dst.Bounds(), draw.Over, nil)
+		return downscaledImg, func() {}, nil
 	})
 	return r, nil
 }
