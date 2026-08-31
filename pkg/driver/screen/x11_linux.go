@@ -87,8 +87,10 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	if p.Height == 0 {
 		p.Height = 1080
 	}
-	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
 	screenProp := s.Properties()[0]
+	isDiff := p.Width == screenProp.Width && p.Height == screenProp.Height
+	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
+
 	screenBounds := image.Rect(0, 0, screenProp.Width, screenProp.Height)
 	s.imgBuffPool = sync.Pool{
 		New: func() any {
@@ -106,21 +108,29 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 
 	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		<-s.tick.C
+
 		imgBuf := s.imgBuffPool.Get().(*image.RGBA)
-		downscaledImgBuf := s.downscaledImgBuffPool.Get().(*image.RGBA)
 		err = reader.Read().ToRGBA(imgBuf)
 		if err != nil {
 			s.imgBuffPool.Put(imgBuf)
-			s.downscaledImgBuffPool.Put(downscaledImgBuf)
 			return nil, nil, err
 		}
-		draw.NearestNeighbor.Scale(downscaledImgBuf, downscaledImgBuf.Rect, imgBuf,
-			imgBuf.Bounds(), draw.Over, nil)
 
-		img = downscaledImgBuf
+		if !isDiff {
+			downscaledImgBuf := s.downscaledImgBuffPool.Get().(*image.RGBA)
+			draw.NearestNeighbor.Scale(downscaledImgBuf, downscaledImgBuf.Rect, imgBuf,
+				imgBuf.Bounds(), draw.Over, nil)
+			img = downscaledImgBuf
+			release = func() {
+				s.imgBuffPool.Put(imgBuf)
+				s.downscaledImgBuffPool.Put(downscaledImgBuf)
+			}
+			return
+		}
+
+		img = imgBuf
 		release = func() {
 			s.imgBuffPool.Put(imgBuf)
-			s.downscaledImgBuffPool.Put(downscaledImgBuf)
 		}
 		return
 	})
