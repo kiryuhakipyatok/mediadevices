@@ -16,15 +16,17 @@ import (
 	"github.com/pion/mediadevices/pkg/frame"
 	"github.com/pion/mediadevices/pkg/io/video"
 	"github.com/pion/mediadevices/pkg/prop"
+	"golang.org/x/image/draw"
 )
 
 type Screen struct {
-	displayIndex int
-	doneCh       chan struct{}
-	shot         dgxi.ScreenShot
-	mu           sync.Mutex
-	imgBuffPool  sync.Pool
-	tick         *time.Ticker
+	displayIndex          int
+	doneCh                chan struct{}
+	shot                  dgxi.ScreenShot
+	mu                    sync.Mutex
+	imgBuffPool           sync.Pool
+	downscaledImgBuffPool sync.Pool
+	tick                  *time.Ticker
 }
 
 func init() {
@@ -95,14 +97,21 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	if err := shot.Init(s.displayIndex); err != nil {
 		return nil, err
 	}
-
 	bounds := shot.GetBounds()
 	shot.DrawCursor(1)
 	s.mu.Lock()
 	s.shot = shot
 	s.tick = time.NewTicker(time.Duration(float32(time.Second) / selectedProp.FrameRate))
 	s.mu.Unlock()
+	screenProp := s.Properties()[0]
+	isDiff := selectedProp.Width == screenProp.Width && selectedProp.Height == screenProp.Height
+	screenBounds := image.Rect(0, 0, screenProp.Width, screenProp.Height)
 	s.imgBuffPool = sync.Pool{
+		New: func() any {
+			return image.NewRGBA(screenBounds)
+		},
+	}
+	s.downscaledImgBuffPool = sync.Pool{
 		New: func() any {
 			return image.NewRGBA(bounds)
 		},
@@ -135,6 +144,18 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 				}
 				return nil, nil, err
 			}
+			if !isDiff {
+				downscaledImgBuf := s.downscaledImgBuffPool.Get().(*image.RGBA)
+				draw.NearestNeighbor.Scale(downscaledImgBuf, downscaledImgBuf.Rect, imgBuf,
+					imgBuf.Bounds(), draw.Over, nil)
+				img = downscaledImgBuf
+				release = func() {
+					s.imgBuffPool.Put(imgBuf)
+					s.downscaledImgBuffPool.Put(downscaledImgBuf)
+				}
+				return
+			}
+
 			img = imgBuf
 			release = func() {
 				s.imgBuffPool.Put(imgBuf)
