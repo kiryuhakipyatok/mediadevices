@@ -87,7 +87,7 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
 	var (
 		dst           *image.RGBA
-		downscaledImg = image.NewRGBA(image.Rect(0, 0, p.Width, p.Height))
+		downscaledImg = image.NewNRGBA(image.Rect(0, 0, p.Width, p.Height))
 	)
 	reader := s.reader
 
