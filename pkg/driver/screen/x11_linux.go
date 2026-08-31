@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"sync"
@@ -117,6 +118,7 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 		}
 
 		if !isDiff {
+			return nil, nil, errors.New("diff")
 			downscaledImgBuf := s.downscaledImgBuffPool.Get().(*image.RGBA)
 			draw.NearestNeighbor.Scale(downscaledImgBuf, downscaledImgBuf.Rect, imgBuf,
 				imgBuf.Bounds(), draw.Over, nil)
