@@ -64,13 +64,13 @@ func (s *Screen) Open() error {
 }
 
 func (s *Screen) Close() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	close(s.doneCh)
+	s.mu.Lock()
 	if s.shot != nil {
 		s.shot.Release()
 		s.shot = nil
 	}
+	s.mu.Unlock()
 	if s.tick != nil {
 		s.tick.Stop()
 		s.tick = nil

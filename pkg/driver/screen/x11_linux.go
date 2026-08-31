@@ -69,6 +69,7 @@ func (s *Screen) Close() error {
 	s.reader.Close()
 	if s.tick != nil {
 		s.tick.Stop()
+		s.tick = nil
 	}
 	return nil
 }

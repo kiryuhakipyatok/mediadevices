@@ -11,8 +11,8 @@ import (
 	"image"
 	"io"
 	"sync"
-	"unsafe"
 	"time"
+	"unsafe"
 
 	"github.com/pion/mediadevices/pkg/driver"
 	"github.com/pion/mediadevices/pkg/driver/availability"
@@ -167,7 +167,6 @@ func imageCallback(cam uintptr) {
 	}
 	copy(cb.bufGo, unsafe.Slice((*byte)(cb.cbuf), cb.bufLen))
 	callbacksMu.RUnlock()
-	<-cb.tick.C
 	select {
 	case cb.ch <- cb.bufGo:
 	case <-cb.done:
@@ -264,7 +263,11 @@ func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	img := &image.YCbCr{}
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
-		//<-c.tick.C
+		select {
+		case <-tick.C:
+		case <-c.done:
+			return nil, func() {}, io.EOF
+		}
 
 		b, ok := <-c.ch
 		if !ok {
