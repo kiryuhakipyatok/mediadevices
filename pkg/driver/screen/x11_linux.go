@@ -3,6 +3,7 @@ package screen
 import (
 	"fmt"
 	"image"
+	"sync"
 	"time"
 
 	"github.com/pion/mediadevices/pkg/driver"
@@ -13,9 +14,11 @@ import (
 )
 
 type Screen struct {
-	num    int
-	reader *reader
-	tick   *time.Ticker
+	num                   int
+	reader                *reader
+	tick                  *time.Ticker
+	imgBuffPool           sync.Pool
+	downscaledImgBuffPool sync.Pool
 }
 
 func deviceID(num int) string {
@@ -85,18 +88,41 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 		p.Height = 1080
 	}
 	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
-	var (
-		dst           image.RGBA
-		downscaledImg = image.NewNRGBA(image.Rect(0, 0, p.Width, p.Height))
-	)
+	screenProp := s.Properties()[0]
+	screenBounds := image.Rect(0, 0, screenProp.Width, screenProp.Height)
+	s.imgBuffPool = sync.Pool{
+		New: func() any {
+			return image.NewRGBA(screenBounds)
+		},
+	}
+	bounds := image.Rect(0, 0, p.Width, p.Height)
+	s.downscaledImgBuffPool = sync.Pool{
+		New: func() any {
+			return image.NewRGBA(bounds)
+		},
+	}
+
 	reader := s.reader
 
-	r := video.ReaderFunc(func() (image.Image, func(), error) {
+	r := video.ReaderFunc(func() (img image.Image, release func(), err error) {
 		<-s.tick.C
-		dst := reader.Read().ToRGBA(&dst)
-		draw.NearestNeighbor.Scale(downscaledImg, downscaledImg.Rect, dst,
-			dst.Bounds(), draw.Over, nil)
-		return downscaledImg, func() {}, nil
+		imgBuf := s.imgBuffPool.Get().(*image.RGBA)
+		downscaledImgBuf := s.downscaledImgBuffPool.Get().(*image.RGBA)
+		err = reader.Read().ToRGBA(imgBuf)
+		if err != nil {
+			s.imgBuffPool.Put(imgBuf)
+			s.downscaledImgBuffPool.Put(downscaledImgBuf)
+			return nil, nil, err
+		}
+		draw.NearestNeighbor.Scale(downscaledImgBuf, downscaledImgBuf.Rect, imgBuf,
+			imgBuf.Bounds(), draw.Over, nil)
+
+		img = downscaledImgBuf
+		release = func() {
+			s.imgBuffPool.Put(imgBuf)
+			s.downscaledImgBuffPool.Put(downscaledImgBuf)
+		}
+		return
 	})
 	return r, nil
 }

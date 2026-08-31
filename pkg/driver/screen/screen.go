@@ -73,6 +73,7 @@ func (s *Screen) Close() error {
 		s.tick.Stop()
 		s.tick = nil
 	}
+
 	return nil
 }
 

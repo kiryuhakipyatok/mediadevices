@@ -198,7 +198,7 @@ func (s *shmImage) RGBAAt(x, y int) color.RGBA {
 	}
 }
 
-func (s *shmImage) ToRGBA(dst *image.RGBA) *image.RGBA {
+func (s *shmImage) ToRGBA(dst *image.RGBA) error {
 	dst.Rect = s.Bounds()
 	dst.Stride = int(s.img.width) * 4
 	l := int(4 * s.img.width * s.img.height)
@@ -211,18 +211,22 @@ func (s *shmImage) ToRGBA(dst *image.RGBA) *image.RGBA {
 	switch s.pixFmt {
 	case pixFmtRGB24:
 		C.memcpy(unsafe.Pointer(&dst.Pix[0]), unsafe.Pointer(s.img.data), C.size_t(len(dst.Pix)))
-		return dst
+		return nil
+		//return dst
 	case pixFmtBGR24:
 		C.copyBGR24(unsafe.Pointer(&dst.Pix[0]), s.img.data, C.size_t(len(dst.Pix)))
-		return dst
+		return nil
+		//return dst
 	case pixFmtRGB16:
 		C.memcpy(unsafe.Pointer(&dst.Pix[0]), unsafe.Pointer(s.img.data), C.size_t(len(dst.Pix)))
-		return dst
+		return nil
+		//return dst
 	case pixFmtBGR16:
 		C.copyBGR16(unsafe.Pointer(&dst.Pix[0]), s.img.data, C.size_t(len(dst.Pix)))
-		return dst
+		return nil
+		//return dst
 	default:
-		panic("unsupported pixel format")
+		return errors.New("unsupported pixel format")
 	}
 }
 
