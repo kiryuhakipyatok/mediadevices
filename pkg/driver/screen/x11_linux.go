@@ -86,14 +86,14 @@ func (s *Screen) VideoRecord(p prop.Media) (video.Reader, error) {
 	}
 	s.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
 	var (
-		dst           *image.RGBA
+		dst           image.RGBA
 		downscaledImg = image.NewNRGBA(image.Rect(0, 0, p.Width, p.Height))
 	)
 	reader := s.reader
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		<-s.tick.C
-		dst = reader.Read().ToRGBA(dst)
+		dst := reader.Read().ToRGBA(&dst)
 		draw.NearestNeighbor.Scale(downscaledImg, downscaledImg.Rect, dst,
 			dst.Bounds(), draw.Over, nil)
 		return downscaledImg, func() {}, nil
