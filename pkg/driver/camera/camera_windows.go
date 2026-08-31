@@ -264,7 +264,7 @@ func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		select {
-		case <-tick.C:
+		case <-c.tick.C:
 		case <-c.done:
 			return nil, func() {}, io.EOF
 		}
