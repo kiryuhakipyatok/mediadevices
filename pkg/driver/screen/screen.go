@@ -8,7 +8,7 @@ import (
 	"image"
 	"io"
 	"sync"
-	"time"
+	//"time"
 
 	dgxi "github.com/ghp3000/screenshot"
 	"github.com/kbinani/screenshot"
@@ -26,7 +26,7 @@ type Screen struct {
 	mu                    sync.Mutex
 	imgBuffPool           sync.Pool
 	downscaledImgBuffPool sync.Pool
-	tick                  *time.Ticker
+	//tick                  *time.Ticker
 }
 
 func init() {
@@ -71,10 +71,10 @@ func (s *Screen) Close() error {
 		s.shot = nil
 	}
 	s.mu.Unlock()
-	if s.tick != nil {
-		s.tick.Stop()
-		s.tick = nil
-	}
+	// if s.tick != nil {
+	// 	s.tick.Stop()
+	// 	s.tick = nil
+	// }
 
 	return nil
 }
@@ -101,7 +101,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 	shot.DrawCursor(1)
 	s.mu.Lock()
 	s.shot = shot
-	s.tick = time.NewTicker(time.Duration(float32(time.Second) / selectedProp.FrameRate))
+	//s.tick = time.NewTicker(time.Duration(float32(time.Second) / selectedProp.FrameRate))
 	s.mu.Unlock()
 	screenProp := s.Properties()[0]
 	isDiff := selectedProp.Width == screenProp.Width && selectedProp.Height == screenProp.Height
@@ -125,7 +125,7 @@ func (s *Screen) VideoRecord(selectedProp prop.Media) (video.Reader, error) {
 			default:
 			}
 
-			<-s.tick.C
+			//<-s.tick.C
 
 			s.mu.Lock()
 			if s.shot == nil {

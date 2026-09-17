@@ -11,7 +11,7 @@ import (
 	"image"
 	"io"
 	"sync"
-	"time"
+	//"time"
 	"unsafe"
 
 	"github.com/pion/mediadevices/pkg/driver"
@@ -34,7 +34,7 @@ type Camera struct {
 	closed bool
 	ch     chan []byte
 	done   chan struct{}
-	tick   *time.Ticker
+	//tick   *time.Ticker
 
 	cbuf   unsafe.Pointer // C.malloc'd buffer for DirectShow writes
 	bufLen int            // byte length of cbuf
@@ -208,10 +208,10 @@ func (c *Camera) Close() error {
 		close(ch)
 	}
 
-	if c.tick != nil {
-		c.tick.Stop()
-		c.tick = nil
-	}
+	// if c.tick != nil {
+	// 	c.tick.Stop()
+	// 	c.tick = nil
+	// }
 
 	return nil
 }
@@ -221,7 +221,7 @@ func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 	if p.FrameRate == 0 {
 		p.FrameRate = 10
 	}
-	c.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
+	//c.tick = time.NewTicker(time.Duration(float32(time.Second) / p.FrameRate))
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -264,7 +264,7 @@ func (c *Camera) VideoRecord(p prop.Media) (video.Reader, error) {
 
 	r := video.ReaderFunc(func() (image.Image, func(), error) {
 		select {
-		case <-c.tick.C:
+		//case <-c.tick.C:
 		case <-c.done:
 			return nil, func() {}, io.EOF
 		}
